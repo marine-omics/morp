@@ -1,0 +1,25 @@
+name: test
+
+on: 
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install Nextflow
+      run: |
+        curl -s https://get.nextflow.io | bash
+        sudo mv nextflow /usr/local/bin/
+    - name: Run morp test
+      run: |
+        nextflow run marine-omics/morp -profile docker,test_pe -r main
+        cat .nextflow.log

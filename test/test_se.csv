@@ -1,0 +1,5 @@
+sample,fastq_1
+PdC,test/data/PdC.7.1.fq.gz
+PdC,test/data/PdC.8.1.fq.gz
+PdLa,test/data/PdLa.7.1.fq.gz
+PdLa,test/data/PdLa.8.1.fq.gz
