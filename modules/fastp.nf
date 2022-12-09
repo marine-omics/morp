@@ -13,8 +13,7 @@ process fastp {
 
     script:
 
-        def read_group  = "${meta.sample}.${meta.flowcell}.${meta.lane}"
-        def prefix = ${meta.prefix}
+        def prefix = "${meta.prefix}"
         def args = task.ext.args ?: ''
 
         if (meta.single_end) {

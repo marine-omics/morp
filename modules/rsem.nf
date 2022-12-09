@@ -5,9 +5,30 @@ process rsem_prepare_reference {
     output:
     path "rsem_ref*" , emit: ref
 
+
     script:
     """
-    rsem-prepare-reference --bowtie2 ${fasta} rsem_ref
+    rsem-prepare-reference \\
+        -p ${task.cpus} \\
+        --bowtie2 ${fasta} rsem_ref
+    """
+}
+
+process rsem_prepare_reference_t2gmap {
+    input:
+    path fasta
+    path map
+
+    output:
+    path "rsem_ref*" , emit: ref
+    
+
+    script:
+    """
+    rsem-prepare-reference \\
+        -p ${task.cpus} \\
+        --transcript-to-gene-map ${map} \\
+        --bowtie2 ${fasta} rsem_ref
     """
 }
 

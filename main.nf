@@ -2,11 +2,13 @@ nextflow.enable.dsl=2
 
 include { multiqc_fastp;multiqc_rsem } from './modules/multiqc.nf'
 include { fastp } from './modules/fastp.nf'
-include { combine_refs } from './modules/fasta.nf'
-include { rsem_prepare_reference;rsem_calculate_expression } from './modules/rsem.nf'
+include { combine_refs;combine_maps } from './modules/fasta.nf'
+include { rsem_prepare_reference;rsem_prepare_reference_t2gmap;rsem_calculate_expression } from './modules/rsem.nf'
 
 params.refa=null
 params.refb=null
+params.refa_map=null
+params.refb_map=null
 params.outdir=null
 
 if(!params.outdir){
@@ -28,21 +30,42 @@ workflow preprocess {
 
 workflow {
   refa_fasta = Channel.fromPath(file(params.refa, checkIfExists:true)) | collect
+  
+  if ( params.refa_map ){
+    refa_map = Channel.fromPath(file(params.refa_map,checkIfExists:true)) | collect
+  }
 
   if ( params.refb ){
     refb_fasta = Channel.fromPath(file(params.refb, checkIfExists:true)) | collect
     ref_fasta = combine_refs(refa_fasta,refb_fasta) | collect
+
+    if ( params.refb_map ){
+      refb_map = Channel.fromPath(file(params.refb_map,checkIfExists:true)) | collect
+    }
+
   } else {
     ref_fasta = refa_fasta
   }
-  ref_fasta.view()
 
-  rsem_ref = rsem_prepare_reference(ref_fasta) | collect
+  if ( params.refa_map && params.refb_map ){
+    println "Will combine maps"
+    ref_map = combine_maps(refa_map,refb_map) | collect
+    rsem_ref = rsem_prepare_reference_t2gmap(ref_fasta,ref_map) | collect
+  } else {
+    if ( params.refb && ((params.refa_map && !params.refb_map) || (!params.refa_map && params.refb_map)) ){
+      log.error "Two refs provided but only one transcript2gene map. If you provide one map you must provide both"
+      exit 1
+    }
+    println "No transcript2gene map provided. Proceeding without map"
 
+    rsem_ref = rsem_prepare_reference(ref_fasta) | collect
+  }
 // Preprocess data
   ch_input_sample = extract_csv(file(params.samples, checkIfExists: true))
 
-  ch_grouped_samples = ch_input_sample.map { meta,reads ->
+  ch_trimmed_samples = ch_input_sample | preprocess
+
+  ch_grouped_samples = ch_trimmed_samples.map { meta,reads ->
     meta = [sample:meta.sample,single_end:meta.single_end]
     tuple(meta,reads)
   }.groupTuple().map { meta,pairList ->
