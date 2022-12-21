@@ -27,7 +27,7 @@ nextflow run marine-omics/morp -profile singularity,test_pe -r main
 As a minimum, `morp` requires a set of raw read data (fastq files) and a reference transcriptome. Assuming you have raw data paths in a file named `samples.csv` and a host reference transcriptome in the file `host.fasta` you would run an analysis with;
 
 ```bash
-nextflow run marine-omics/morp -profile zodiac -r main --samples samples.csv --refa host.fasta
+nextflow run marine-omics/morp -profile zodiac -r main --samples samples.csv --refa host.fasta --outdir myout
 ```
 
 Note the profile here is `zodiac` which will load predefined settings for the JCU HPC. Other alternatives include `genomics` or a custom profile that you create yourself with `-c custom.config`.
@@ -35,7 +35,7 @@ Note the profile here is `zodiac` which will load predefined settings for the JC
 If you would like to map reads against a dual transcriptome (eg host and symbiont) you can provide a second reference transcriptome like this
 
 ```bash
-nextflow run marine-omics/morp -profile zodiac -r main --samples samples.csv --refa host.fasta --refb symbiont.fasta
+nextflow run marine-omics/morp -profile zodiac -r main --samples samples.csv --refa host.fasta --refb symbiont.fasta --outdir myout
 ```
 
 In this case `morp` will start by combining transcripts from `refa` and `refb` into a single file.  The names of all transcripts in `refa` will be prepended with the prefix "a_" and those in `refb` will be prepended with "b_".  This will allow you to separate them out when you perform your statistical analysis. 
