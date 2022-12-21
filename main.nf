@@ -70,10 +70,14 @@ workflow {
     tuple(meta,reads)
   }.groupTuple().map { meta,pairList ->
       flatreads=[]
+      if ( !meta.single_end ){
         pairList.each { v -> 
           flatreads << v[0]
-          if ( !meta.single_end ) flatreads << v[1]
+          flatreads << v[1]
         }
+      } else {
+        flatreads << pairList[0]
+      }
     tuple(meta,flatreads)
   }
 
