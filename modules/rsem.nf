@@ -34,7 +34,8 @@ process rsem_prepare_reference_t2gmap {
 
 process rsem_calculate_expression {
 
-  publishDir "$params.outdir/rsem", mode: 'copy'
+  publishDir "$params.outdir/rsem", mode: 'copy', pattern: '*.results'
+  publishDir "$params.outdir/rsem", mode: 'copy', pattern: '*.stat'  
 
   input:
   tuple val(meta), path(reads)
