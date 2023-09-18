@@ -56,9 +56,13 @@ workflow {
       log.error "Two refs provided but only one transcript2gene map. If you provide one map you must provide both"
       exit 1
     }
-    println "No transcript2gene map provided. Proceeding without map"
-
-    rsem_ref = rsem_prepare_reference(ref_fasta) | collect
+    if ( params.refa_map && !params.refa_map){
+      println "No transcript2gene map provided. Proceeding without map"
+      rsem_ref = rsem_prepare_reference(ref_fasta) | collect
+    } else {
+        println "Found transcript2gene map. Will attempt to use this map"
+        rsem_ref = rsem_prepare_reference_t2gmap(ref_fasta,refa_map) | collect
+    }
   }
 // Preprocess data
   ch_input_sample = extract_csv(file(params.samples, checkIfExists: true))
