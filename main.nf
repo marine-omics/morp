@@ -70,7 +70,7 @@ workflow {
       log.error "Two refs provided but only one transcript2gene map. If you provide one map you must provide both"
       exit 1
     }
-    if ( params.refa_map && !params.refb_map){
+    if ( !params.refa_map && !params.refb_map){
       println "No transcript2gene map provided. Proceeding without map"
       rsem_ref = rsem_prepare_reference(ref_fasta) | collect
     } 
