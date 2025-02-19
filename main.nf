@@ -35,6 +35,7 @@ workflow {
     refa_map = Channel.fromPath(file(params.refa_map,checkIfExists:true)) | collect
   }
 
+// If we have a refb we need to combine it with a and check for a refb map
   if ( params.refb ){
     refb_fasta = Channel.fromPath(file(params.refb, checkIfExists:true)) | collect
     ref_fasta = combine_refs(refa_fasta,refb_fasta) | collect
@@ -47,6 +48,19 @@ workflow {
     ref_fasta = refa_fasta
   }
 
+  // If no refb then we just check for a map
+  if ( !params.refb ){
+    if ( params.refa_map ){
+      println "No transcript2gene map provided. Proceeding without map"
+      rsem_ref = rsem_prepare_reference(ref_fasta) | collect
+    } else {
+      println "Found transcript2gene map. Will attempt to use this map"
+      rsem_ref = rsem_prepare_reference_t2gmap(ref_fasta,refa_map) | collect
+    }
+  }
+
+  // We have both refa and refb. Looking for maps
+  // Both maps
   if ( params.refa_map && params.refb_map ){
     println "Will combine maps"
     ref_map = combine_maps(refa_map,refb_map) | collect
@@ -56,13 +70,10 @@ workflow {
       log.error "Two refs provided but only one transcript2gene map. If you provide one map you must provide both"
       exit 1
     }
-    if ( params.refa_map && !params.refa_map){
+    if ( params.refa_map && !params.refb_map){
       println "No transcript2gene map provided. Proceeding without map"
       rsem_ref = rsem_prepare_reference(ref_fasta) | collect
-    } else {
-        println "Found transcript2gene map. Will attempt to use this map"
-        rsem_ref = rsem_prepare_reference_t2gmap(ref_fasta,refa_map) | collect
-    }
+    } 
   }
 // Preprocess data
   ch_input_sample = extract_csv(file(params.samples, checkIfExists: true))
